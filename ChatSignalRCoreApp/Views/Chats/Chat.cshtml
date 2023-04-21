@@ -1,0 +1,60 @@
+﻿
+@model int
+
+<h1 class="text-center">@ChatSignalIr.Controllers.ChatsController.ListaChats.GetValueOrDefault(Model)</h1>
+
+<div class="row justify-content-center">
+    <div class="mb-2">
+        <input class="form-control" type="text" placeholder="introduzca su Usuario" id="user" />
+        <input class="form-control" type="text" placeholder="introduzca su Mensaje" id="message" />
+        <div class="text-center">
+            <button id="btnEnviar" type="button" class="btn btn-success">Enviar</button>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-10">
+        <ul class="list-group" id="Mensajes">
+        </ul>
+    </div>
+</div>
+
+@*//Colocamos el script de SignalR para usarlo*@
+<script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            //primero estamos creando el objeto de conexion
+            var conexion = new signalR.HubConnectionBuilder().withUrl("/Chats").build();
+            //Despues iniciamos la conexion y nos añadimos al grupo mediante la funcion "AddToGroup"
+            conexion.start().then(() => {
+                conexion.invoke("AddToGroup", "@Model");
+            }).then(() => console.log(conexion));
+            //En el momento que demos click, obtenemos los datos de los inputs y lo mandamos mediante
+            //la función "SendMessage"
+            $("#btnEnviar").click(function (e) {
+                let room = @Model;
+                let user = $("#user").val();
+                let mensaje = $("#message").val();
+                conexion.invoke('SendMessage', room, user, mensaje);
+                $("#message").val("");
+                $("#message").focus();
+                //Para que no recargue la pagina
+                e.preventDefault();
+            });
+            //Si la conexion esta activa y un mensaje se manda, se activa la funcion "RecibirMensaje"
+            //y nos mostrara en tiempo real el mensaje y el usuario
+            conexion.on("RecibirMensaje", (user, mensaje) => {
+                let li = $("<li>", {"class": "list-group-item"});
+                let small = $("<small>", { "text": user + "  -  " });
+                li.append(small);
+                li.append(mensaje);
+                $("#Mensajes").append(li);
+            });
+        });
+    </script>
+
+}

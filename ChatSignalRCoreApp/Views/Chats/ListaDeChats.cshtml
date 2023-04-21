@@ -1,0 +1,12 @@
+﻿@model Dictionary<int, string>
+
+<div class="row justify-content-center">
+    <ul class="list-group">
+        @foreach (var chat in Model)
+        {
+            <li>
+                <a asp-controller="Chats" asp-action="Chat" asp-route-idChat="@chat.Key">@chat.Value</a>
+            </li>
+        }
+    </ul>
+</div>
